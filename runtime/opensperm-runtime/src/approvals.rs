@@ -10,7 +10,6 @@ pub struct ApprovalState {
 
 impl ApprovalState {
     pub async fn request(&self, scope: &str) -> bool {
-        // In-memory allow
         {
             let guard = self.approved_scopes.lock().await;
             if guard.contains(scope) {
@@ -18,7 +17,12 @@ impl ApprovalState {
             }
         }
 
-        // File-based approvals (comma-separated scopes) via env APPROVAL_FILE
+        if std::env::var("OPENSPERM_APPROVE_ALL").is_ok() {
+            let mut guard = self.approved_scopes.lock().await;
+            guard.insert(scope.to_string());
+            return true;
+        }
+
         if let Ok(path) = std::env::var("OPENSPERM_APPROVAL_FILE") {
             if let Some(set) = self.load_file(&path) {
                 if set.contains(scope) {
@@ -29,7 +33,6 @@ impl ApprovalState {
             }
         }
 
-        // TODO: integrate real approval channel; default deny
         false
     }
 
