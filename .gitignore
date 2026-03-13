@@ -1,0 +1,11 @@
+/target
+/node_modules
+/dist
+/.env
+.DS_Store
+/.idea
+/.vscode
+coverage
+**/package-lock.json
+**/yarn.lock
+**/pnpm-lock.yaml
