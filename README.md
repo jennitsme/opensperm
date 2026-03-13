@@ -26,8 +26,9 @@ Opensperm is a private agent runtime: dedicated pods, isolated execution, local 
 - Rust runtime skeleton (sandbox, policy, registry, egress, limits).
 - CLI: init/run/test/package/policy-check; run-config + registry loader.
 - Schemas: skill manifest, IPC + error codes.
-- SDKs: TS/Rust stubs; signing helpers; approvals via file.
-- TODO (next): streaming IPC, contract runner via shim, approval channel beyond file, demo skills/policies.
+- SDKs: TS/Rust stubs; signing helpers; approvals via file/prompt/webhook.
+- Streaming IPC active; contract runner executes transcripts via sandbox.
+- Demo skills: echo, uppercase, reverse, http_mock.
 
 ## Quickstart (local demo)
 ```bash

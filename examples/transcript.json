@@ -1,5 +1,5 @@
 {
-  "name": "echo-uppercase-demo",
+  "name": "multi-demo",
   "steps": [
     {
       "request": {"tool": "echo", "input": {"text": "hello opensperm"}},
@@ -8,6 +8,14 @@
     {
       "request": {"tool": "uppercase", "input": {"text": "hello opensperm"}},
       "response": {"output": {"text": "HELLO OPENSPERM"}}
+    },
+    {
+      "request": {"tool": "reverse", "input": {"text": "hello opensperm"}},
+      "response": {"output": {"text": "mrepsnepo olleh"}}
+    },
+    {
+      "request": {"tool": "http_mock", "input": {"url": "https://example.com"}},
+      "response": {"output": {"url": "https://example.com", "status": 200, "body": "mocked"}}
     }
   ]
 }

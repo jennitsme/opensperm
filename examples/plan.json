@@ -15,6 +15,22 @@
       "tool": "uppercase",
       "input": {"text": "hello opensperm"},
       "policy_scopes": []
+    },
+    {
+      "agent_id": "agent-1",
+      "trace_id": "trace-demo",
+      "span_id": "span-rev",
+      "tool": "reverse",
+      "input": {"text": "hello opensperm"},
+      "policy_scopes": []
+    },
+    {
+      "agent_id": "agent-1",
+      "trace_id": "trace-demo",
+      "span_id": "span-http",
+      "tool": "http_mock",
+      "input": {"url": "https://example.com"},
+      "policy_scopes": []
     }
   ]
 }

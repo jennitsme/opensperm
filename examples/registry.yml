@@ -7,3 +7,11 @@ tools:
     command: ./examples/tools/uppercase.sh
     args: []
     allow_egress: []
+  - name: reverse
+    command: ./examples/tools/reverse.sh
+    args: []
+    allow_egress: []
+  - name: http_mock
+    command: ./examples/tools/http_mock.sh
+    args: []
+    allow_egress: []
