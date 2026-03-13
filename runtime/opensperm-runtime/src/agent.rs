@@ -1,4 +1,10 @@
-use crate::{ipc::ToolCall, observability::TraceCtx, planner::Plan, policy::PolicyEngine, sandbox::SandboxManager};
+use crate::{
+    ipc::ToolCall,
+    observability::TraceCtx,
+    planner::Plan,
+    policy::PolicyEngine,
+    sandbox::{SandboxError, SandboxManager},
+};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -21,9 +27,9 @@ impl AgentRuntime {
 
     pub async fn execute_plan(&self, plan: Plan, trace: TraceCtx) -> Result<(), AgentError> {
         for step in plan.steps {
-            self.policy.check(&step, &trace)?;
+            self.policy.check(&step, &trace).map_err(AgentError::Policy)?;
             let tool_call = ToolCall::from_step(&step);
-            let _resp = self.sandbox.invoke(tool_call, trace.clone()).await?;
+            self.sandbox.invoke(tool_call, trace.clone()).await.map_err(AgentError::Sandbox)?;
         }
         Ok(())
     }
@@ -35,4 +41,10 @@ pub enum AgentError {
     Policy(String),
     #[error("sandbox error: {0}")]
     Sandbox(String),
+}
+
+impl From<SandboxError> for AgentError {
+    fn from(value: SandboxError) -> Self {
+        AgentError::Sandbox(value.to_string())
+    }
 }

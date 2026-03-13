@@ -3,8 +3,8 @@ import { ManifestSchema } from "./manifest";
 import { SkillBundle } from "./tool";
 
 export interface TranscriptStep {
-  request: unknown;
-  response: unknown;
+  request: { tool: string; input: unknown };
+  response: { output: unknown };
 }
 
 export interface Transcript {
@@ -12,13 +12,18 @@ export interface Transcript {
   steps: TranscriptStep[];
 }
 
-export function runContractTest(bundle: SkillBundle, transcript: Transcript) {
-  // Validate manifest shape first
+export async function runContractTest(bundle: SkillBundle, transcript: Transcript) {
   ManifestSchema.parse(bundle.manifest);
+  assert.ok(bundle.tools.length > 0, "no tools defined");
 
-  // TODO: execute against runtime shim; for now, basic shape assertion
+  const toolMap = new Map(bundle.tools.map((t) => [t.name, t]));
+
   for (const step of transcript.steps) {
-    assert.ok(step.request, "request present");
-    assert.ok(step.response, "response present");
+    const tool = toolMap.get(step.request.tool);
+    assert.ok(tool, `tool ${step.request.tool} not found`);
+    const parsedInput = tool.inputSchema.parse(step.request.input);
+    const output = await tool.handler(parsedInput as any);
+    const parsedOutput = tool.outputSchema.parse(output);
+    assert.deepEqual(parsedOutput, step.response.output, "output mismatch");
   }
 }

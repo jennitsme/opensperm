@@ -1,5 +1,6 @@
 pub mod agent;
 pub mod ipc;
+pub mod errors;
 pub mod memory;
 pub mod observability;
 pub mod planner;
