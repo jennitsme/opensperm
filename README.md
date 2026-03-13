@@ -1,6 +1,6 @@
 # opensperm
 
-Spawn. Inject. Deploy. Ghost. — Opensperm is a private agent runtime: dedicated pods, isolated execution, local models, and secure skills.
+Opensperm adalah private agent runtime: dedicated pods, eksekusi terisolasi, model lokal, dan skill aman.
 
 ## Core Modules
 - **Agent Pods**: Dedicated compute per agent. No shared infra. Isolated processes.
