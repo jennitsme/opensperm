@@ -1,0 +1,5 @@
+tools:
+  - name: echo
+    command: /bin/cat
+    args: []
+    allow_egress: []

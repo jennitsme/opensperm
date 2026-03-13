@@ -1,0 +1,9 @@
+{
+  "name": "echo-demo",
+  "steps": [
+    {
+      "request": {"tool": "echo", "input": {"text": "hello opensperm"}},
+      "response": {"output": {"text": "hello opensperm"}}
+    }
+  ]
+}

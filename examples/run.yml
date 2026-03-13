@@ -1,0 +1,6 @@
+# Sandbox/run config
+timeout_ms: 5000
+egress_allow: []
+registry: examples/registry.yml
+cpu_time_ms: 1000
+memory_bytes: 134217728 # 128MB

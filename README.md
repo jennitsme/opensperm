@@ -29,14 +29,17 @@ Opensperm adalah private agent runtime: dedicated pods, eksekusi terisolasi, mod
 - SDKs: TS/Rust stubs; signing helpers; approvals via file.
 - TODO (next): streaming IPC, contract runner via shim, approval channel beyond file, demo skills/policies.
 
-## Quickstart (local)
+## Quickstart (local demo)
 ```bash
-# Run plan with policy and run configs
-auth your gh; git clone https://github.com/jennitsme/opensperm.git
+git clone https://github.com/jennitsme/opensperm.git
 cd opensperm
 cargo build
-# example
-# opensperm run --plan plan.json --policy policy.json --run run.yml
+
+# Jalankan demo plan dengan registry/policy contoh
+opensperm run --plan examples/plan.json --policy examples/policy.json --run examples/run.yml
+
+# Validasi transcript demo
+aopensperm test --transcript examples/transcript.json
 ```
 
 ## License

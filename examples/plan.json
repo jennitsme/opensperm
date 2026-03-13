@@ -1,0 +1,12 @@
+{
+  "steps": [
+    {
+      "agent_id": "agent-1",
+      "trace_id": "trace-demo",
+      "span_id": "span-echo",
+      "tool": "echo",
+      "input": {"text": "hello opensperm"},
+      "policy_scopes": []
+    }
+  ]
+}
