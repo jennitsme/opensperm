@@ -93,6 +93,7 @@ impl SandboxManager {
             }
             let status = child.wait().await.map_err(|e| SandboxError::Process(e.to_string()))?;
             if !status.success() {
+                tracing::error!(span_id=%call.context.span_id, stderr=%String::from_utf8_lossy(&err), code=?status.code(), "sandbox process failed");
                 return Err(SandboxError::Process(format!("exit code {:?}, stderr {}", status.code(), String::from_utf8_lossy(&err))));
             }
             let output_json: serde_json::Value = serde_json::from_slice(&out).unwrap_or(serde_json::json!({"raw": String::from_utf8_lossy(&out)}));

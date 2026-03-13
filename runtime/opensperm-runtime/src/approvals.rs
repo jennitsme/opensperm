@@ -18,6 +18,7 @@ impl ApprovalState {
         }
 
         if std::env::var("OPENSPERM_APPROVE_ALL").is_ok() {
+            tracing::info!(scope=%scope, "approval: approve_all env");
             let mut guard = self.approved_scopes.lock().await;
             guard.insert(scope.to_string());
             return true;
@@ -26,29 +27,38 @@ impl ApprovalState {
         if let Ok(path) = std::env::var("OPENSPERM_APPROVAL_FILE") {
             if let Some(set) = self.load_file(&path) {
                 if set.contains(scope) {
+                    tracing::info!(scope=%scope, file=%path, "approval: allowed by file");
                     let mut guard = self.approved_scopes.lock().await;
                     guard.insert(scope.to_string());
                     return true;
                 }
             }
+            tracing::warn!(scope=%scope, file=%path, "approval: file present but scope not allowed");
         }
 
         if let Ok(url) = std::env::var("OPENSPERM_APPROVAL_WEBHOOK") {
             if self.call_webhook(&url, scope).await {
+                tracing::info!(scope=%scope, url=%url, "approval: webhook success");
                 let mut guard = self.approved_scopes.lock().await;
                 guard.insert(scope.to_string());
                 return true;
+            } else {
+                tracing::warn!(scope=%scope, url=%url, "approval: webhook denied/failed");
             }
         }
 
         if std::env::var("OPENSPERM_APPROVAL_PROMPT").is_ok() {
             if Self::prompt(scope) {
+                tracing::info!(scope=%scope, "approval: prompt approved");
                 let mut guard = self.approved_scopes.lock().await;
                 guard.insert(scope.to_string());
                 return true;
+            } else {
+                tracing::warn!(scope=%scope, "approval: prompt denied");
             }
         }
 
+        tracing::warn!(scope=%scope, "approval: denied");
         false
     }
 
