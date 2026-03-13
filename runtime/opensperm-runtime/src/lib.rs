@@ -7,5 +7,8 @@ pub mod planner;
 pub mod policy;
 pub mod sandbox;
 pub mod signing;
+pub mod tool_registry;
+pub mod egress;
+pub mod signer;
 
 pub use agent::{AgentConfig, AgentRuntime};

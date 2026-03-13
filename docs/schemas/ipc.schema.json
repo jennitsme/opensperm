@@ -6,7 +6,8 @@
     { "$ref": "#/definitions/ToolCallRequest" },
     { "$ref": "#/definitions/ToolCallResponse" },
     { "$ref": "#/definitions/StreamToken" },
-    { "$ref": "#/definitions/TraceEvent" }
+    { "$ref": "#/definitions/TraceEvent" },
+    { "$ref": "#/definitions/Heartbeat" }
   ],
   "definitions": {
     "ToolCallRequest": {
@@ -42,10 +43,11 @@
           "type": "object",
           "properties": {
             "message": { "type": "string" },
-            "code": { "type": "string" }
+            "code": { "type": "string", "enum": ["INVALID_INPUT", "POLICY_DENIED", "SANDBOX_FAILED", "TIMEOUT", "TOOL_ERROR", "INTERNAL", "EGRESS_DENIED", "UNKNOWN_TOOL"] }
           },
           "additionalProperties": false
-        }
+        },
+        "trace": { "type": "object" }
       },
       "additionalProperties": false
     },
@@ -69,6 +71,15 @@
         "level": { "type": "string", "enum": ["debug", "info", "warn", "error"] },
         "message": { "type": "string" },
         "metadata": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "Heartbeat": {
+      "type": "object",
+      "required": ["type", "id"],
+      "properties": {
+        "type": { "const": "heartbeat" },
+        "id": { "type": "string" }
       },
       "additionalProperties": false
     }

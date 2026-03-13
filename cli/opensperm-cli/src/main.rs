@@ -5,6 +5,8 @@ use tracing_subscriber::EnvFilter;
 
 mod init;
 mod policy;
+mod package;
+mod test_cmd;
 
 #[derive(Parser)]
 #[command(name = "opensperm", version, about = "Agentic runtime CLI")]
@@ -20,9 +22,9 @@ enum Commands {
     /// Run an agent locally with a policy config
     Run { #[arg(long)] plan: Option<String>, #[arg(long)] policy: Option<String> },
     /// Run contract tests / golden transcripts
-    Test {},
+    Test { #[arg(long)] transcript: Option<String> },
     /// Package and sign a skill bundle
-    Package {},
+    Package { #[arg(long)] manifest: Option<String>, #[arg(long)] secret: Option<String> },
     /// Validate policies
     PolicyCheck { #[arg(long)] file: Option<String> },
 }
@@ -66,11 +68,24 @@ fn main() {
                 }
             });
         }
-        Commands::Test {} => {
-            println!("run contract tests + golden transcripts (TODO)");
+        Commands::Test { transcript } => {
+            let t = transcript.unwrap_or_else(|| "tests/golden/sample.json".into());
+            if let Err(e) = test_cmd::run_transcript(&t) {
+                eprintln!("test failed: {e}");
+            } else {
+                println!("test passed: {t}");
+            }
         }
-        Commands::Package {} => {
-            println!("package and sign skill bundle (TODO)");
+        Commands::Package { manifest, secret } => {
+            let manifest = manifest.unwrap_or_else(|| "manifest.json".into());
+            let secret = secret.unwrap_or_else(|| std::env::var("OPENSPERM_SECRET").unwrap_or_default());
+            if secret.is_empty() {
+                eprintln!("missing secret key (base64)");
+            } else if let Err(e) = package::sign(&manifest, &secret) {
+                eprintln!("package failed: {e}");
+            } else {
+                println!("signed manifest: {manifest}");
+            }
         }
         Commands::PolicyCheck { file } => {
             let file = file.unwrap_or_else(|| "policy.json".into());
