@@ -7,6 +7,6 @@ pub fn run_transcript(path: &str) -> Result<()> {
     if transcript.get("steps").is_none() {
         anyhow::bail!("invalid transcript: missing steps");
     }
-    // TODO: integrate TS/Rust shim execution for end-to-end contract tests.
+    // TODO: invoke runtime shim (TS/Rust) when available.
     Ok(())
 }
