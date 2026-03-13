@@ -1,5 +1,4 @@
 pub mod agent;
-pub mod ipc;
 pub mod errors;
 pub mod memory;
 pub mod observability;
@@ -15,5 +14,6 @@ pub mod registry_config;
 pub mod stream;
 pub mod logging;
 pub mod seccomp;
+pub mod docker;
 
 pub use agent::{AgentConfig, AgentRuntime};

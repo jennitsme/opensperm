@@ -1,4 +1,5 @@
 use crate::{
+    docker::{run_docker, DockerSpec},
     egress::{EgressError, EgressPolicy},
     ipc::{
         IpcError, IpcMessage, ToolCall, ToolCallStatus, ERR_EGRESS_DENIED, ERR_SANDBOX_FAILED, ERR_TIMEOUT, ERR_UNKNOWN_TOOL,
@@ -71,7 +72,6 @@ impl SandboxManager {
             .resolve(&call)
             .ok_or_else(|| SandboxError::UnknownTool(call.tool.clone()))?;
 
-        // Egress check: if input contains url, must match allow_egress
         if !url_allowed(&call.input, &spec.allow_egress) {
             tracing::warn!(tool=%call.tool, span_id=%call.context.span_id, "egress denied by allowlist");
             return Err(SandboxError::Egress(EgressError::Denied(format!("url not allowed"))));
@@ -83,6 +83,44 @@ impl SandboxManager {
         }
 
         let payload = serde_json::to_vec(&call.input).map_err(|e| SandboxError::Process(e.to_string()))?;
+
+        // Choose execution: docker or host
+        if let Some(dspec) = &spec.docker {
+            let (out, err) = run_docker(dspec, payload).await.map_err(|e| SandboxError::Process(e.to_string()))?;
+            let output_json: serde_json::Value = serde_json::from_slice(&out).unwrap_or(serde_json::json!({"raw": String::from_utf8_lossy(&out)}));
+            if !err.is_empty() {
+                crate::logging::append_json("process_error", serde_json::json!({
+                    "span": call.context.span_id,
+                    "stderr": String::from_utf8_lossy(&err),
+                    "code": 0
+                }));
+            }
+            let mut msgs: Vec<IpcMessage> = Vec::new();
+            let text_out = String::from_utf8_lossy(&out).to_string();
+            if !text_out.is_empty() {
+                let chunk_size = 512;
+                for chunk in text_out.as_bytes().chunks(chunk_size) {
+                    let delta = String::from_utf8_lossy(chunk).to_string();
+                    tracing::info!(span_id=%call.context.span_id, stream_chunk=%delta);
+                    crate::logging::append_json("stream_chunk", serde_json::json!({"span": call.context.span_id, "delta": delta}));
+                    msgs.push(IpcMessage::StreamToken {
+                        id: call.context.span_id.clone(),
+                        delta,
+                        done: false,
+                    });
+                }
+            }
+            msgs.push(IpcMessage::ToolCallResponse {
+                id: call.context.span_id.clone(),
+                status: ToolCallStatus::Ok,
+                output: Some(output_json.clone()),
+                error: None,
+                trace: None,
+            });
+            crate::logging::append_json("tool_response", serde_json::json!({"span": call.context.span_id, "output": output_json}));
+            return Ok(msgs);
+        }
+
         let mut cmd = Command::new(&spec.command);
         cmd.args(&spec.args)
             .stdin(Stdio::piped())

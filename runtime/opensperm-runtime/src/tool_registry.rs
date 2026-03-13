@@ -1,3 +1,4 @@
+use crate::docker::DockerSpec;
 use crate::ipc::ToolCall;
 use std::collections::HashMap;
 
@@ -6,6 +7,7 @@ pub struct ToolSpec {
     pub command: String,
     pub args: Vec<String>,
     pub allow_egress: Vec<String>,
+    pub docker: Option<DockerSpec>,
 }
 
 #[derive(Default, Clone)]
