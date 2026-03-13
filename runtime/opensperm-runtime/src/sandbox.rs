@@ -71,8 +71,8 @@ impl SandboxManager {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
 
+        apply_limits(&mut cmd, &self.config.limits).map_err(SandboxError::Limit)?;
         let mut child = cmd.spawn().map_err(|e| SandboxError::Process(e.to_string()))?;
-        apply_limits(&mut child, &self.config.limits).map_err(SandboxError::Limit)?;
 
         if let Some(mut stdin) = child.stdin.take() {
             stdin.write_all(&payload).await.map_err(|e| SandboxError::Process(e.to_string()))?;

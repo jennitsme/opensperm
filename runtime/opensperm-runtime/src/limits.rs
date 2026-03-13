@@ -18,19 +18,38 @@ pub enum LimitError {
     Apply(String),
 }
 
-#[cfg(target_os = "macos")]
-pub fn apply_limits(_child: &mut tokio::process::Child, _limits: &ResourceLimits) -> Result<(), LimitError> {
-    // TODO: macOS sandbox/seatbelt profile integration
+#[cfg(unix)]
+pub fn apply_limits(cmd: &mut tokio::process::Command, limits: &ResourceLimits) -> Result<(), LimitError> {
+    use std::os::unix::process::CommandExt;
+    use libc::{rlimit, setrlimit, RLIMIT_AS, RLIMIT_CPU};
+
+    let cpu_ms = limits.cpu_time_ms;
+    let mem_bytes = limits.memory_bytes;
+
+    if cpu_ms.is_none() && mem_bytes.is_none() {
+        return Ok(());
+    }
+
+    unsafe {
+        cmd.pre_exec(move || {
+            if let Some(ms) = cpu_ms {
+                let secs = (ms + 999) / 1000; // ceil to seconds
+                let lim = rlimit { rlim_cur: secs as u64, rlim_max: secs as u64 };
+                let rc = setrlimit(RLIMIT_CPU, &lim);
+                if rc != 0 { return Err(std::io::Error::last_os_error()); }
+            }
+            if let Some(bytes) = mem_bytes {
+                let lim = rlimit { rlim_cur: bytes as u64, rlim_max: bytes as u64 };
+                let rc = setrlimit(RLIMIT_AS, &lim);
+                if rc != 0 { return Err(std::io::Error::last_os_error()); }
+            }
+            Ok(())
+        });
+    }
     Ok(())
 }
 
-#[cfg(target_os = "linux")]
-pub fn apply_limits(_child: &mut tokio::process::Child, _limits: &ResourceLimits) -> Result<(), LimitError> {
-    // TODO: cgroups/rlimits
-    Ok(())
-}
-
-#[cfg(not(any(target_os = "macos", target_os = "linux")))]
-pub fn apply_limits(_child: &mut tokio::process::Child, _limits: &ResourceLimits) -> Result<(), LimitError> {
+#[cfg(not(unix))]
+pub fn apply_limits(_cmd: &mut tokio::process::Command, _limits: &ResourceLimits) -> Result<(), LimitError> {
     Ok(())
 }
