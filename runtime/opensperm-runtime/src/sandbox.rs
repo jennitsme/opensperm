@@ -1,6 +1,7 @@
 use crate::{
     egress::{EgressError, EgressPolicy},
     ipc::{IpcMessage, ToolCall, ToolCallStatus},
+    limits::ResourceLimits,
     observability::TraceCtx,
     tool_registry::{ToolRegistry, ToolSpec},
 };
@@ -14,6 +15,7 @@ use tokio::time::{timeout, Duration};
 pub struct SandboxConfig {
     pub timeout_ms: u64,
     pub egress_policy: EgressPolicy,
+    pub limits: ResourceLimits,
 }
 
 pub struct SandboxManager {
@@ -24,7 +26,11 @@ pub struct SandboxManager {
 impl SandboxManager {
     pub fn new() -> Self {
         Self {
-            config: SandboxConfig { timeout_ms: 10_000, egress_policy: EgressPolicy::default() },
+            config: SandboxConfig {
+                timeout_ms: 10_000,
+                egress_policy: EgressPolicy::default(),
+                limits: ResourceLimits::default(),
+            },
             registry: ToolRegistry::new(),
         }
     }
@@ -60,7 +66,10 @@ impl SandboxManager {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
 
-        // TODO: apply resource limits (cgroups/rlimits) per OS
+        // TODO: apply resource limits per OS (rlimits/cgroups)
+        if let Some(_mem) = self.config.limits.memory_bytes {
+            // placeholder hook
+        }
 
         let mut child = cmd.spawn().map_err(|e| SandboxError::Process(e.to_string()))?;
 

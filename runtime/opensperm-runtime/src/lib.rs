@@ -10,5 +10,6 @@ pub mod signing;
 pub mod tool_registry;
 pub mod egress;
 pub mod signer;
+pub mod limits;
 
 pub use agent::{AgentConfig, AgentRuntime};
