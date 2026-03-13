@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Build opensperm-cli
+        run: cargo build --release -p opensperm-cli
+      - name: Package artifact
+        run: |
+          bin=target/release/opensperm-cli
+          out=opensperm-cli-${{ matrix.os }}
+          cp "$bin" "$out"
+          tar czf "$out.tar.gz" "$out"
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: opensperm-cli-${{ matrix.os }}
+          path: opensperm-cli-${{ matrix.os }}.tar.gz
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/**/*.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
