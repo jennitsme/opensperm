@@ -52,6 +52,7 @@ impl SandboxManager {
 
     /// Invoke a tool, emitting stream tokens for stdout chunks and a final response.
     pub async fn invoke(&self, call: ToolCall, trace: TraceCtx) -> Result<Vec<IpcMessage>, SandboxError> {
+        crate::logging::append(&format!("invoke tool={} span={} trace={} scopes={:?}", call.tool, call.context.span_id, call.context.trace_id, call.context.policy_scopes));
         let _span = trace.enter_span("sandbox_invoke");
 
         let spec = self
@@ -105,7 +106,8 @@ impl SandboxManager {
                 let chunk_size = 512;
                 for chunk in text_out.as_bytes().chunks(chunk_size) {
                     let delta = String::from_utf8_lossy(chunk).to_string();
-                    tracing::info!(span_id=%call.context.span_id, "stream_chunk" = %delta);
+                    tracing::info!(span_id=%call.context.span_id, stream_chunk=%delta);
+                    crate::logging::append(&format!("stream_chunk span={} delta={}", call.context.span_id, delta));
                     msgs.push(IpcMessage::StreamToken {
                         id: call.context.span_id.clone(),
                         delta,
@@ -117,10 +119,11 @@ impl SandboxManager {
             msgs.push(IpcMessage::ToolCallResponse {
                 id: call.context.span_id.clone(),
                 status: ToolCallStatus::Ok,
-                output: Some(output_json),
+                output: Some(output_json.clone()),
                 error: None,
                 trace: None,
             });
+            crate::logging::append(&format!("tool_response span={} output={}", call.context.span_id, output_json));
             Ok(msgs)
         };
 

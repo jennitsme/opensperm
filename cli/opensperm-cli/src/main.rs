@@ -35,6 +35,8 @@ fn main() {
         .with_env_filter(EnvFilter::from_default_env())
         .init();
 
+    opensperm_runtime::logging::init_from_env();
+
     let cli = Cli::parse();
     match cli.command {
         Commands::Init { language } => {

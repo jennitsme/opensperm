@@ -13,5 +13,6 @@ pub mod signer;
 pub mod limits;
 pub mod registry_config;
 pub mod stream;
+pub mod logging;
 
 pub use agent::{AgentConfig, AgentRuntime};
