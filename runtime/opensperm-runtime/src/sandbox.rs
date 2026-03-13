@@ -79,6 +79,10 @@ impl SandboxManager {
             .stderr(Stdio::piped());
 
         apply_limits(&mut cmd, &self.config.limits).map_err(SandboxError::Limit)?;
+        #[cfg(target_os = "linux")]
+        {
+            crate::seccomp::apply_seccomp().map_err(|e| SandboxError::Process(e))?;
+        }
         let mut child = cmd.spawn().map_err(|e| SandboxError::Process(e.to_string()))?;
 
         if let Some(mut stdin) = child.stdin.take() {
