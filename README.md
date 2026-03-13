@@ -28,7 +28,7 @@ Opensperm is a private agent runtime: dedicated pods, isolated execution, local 
 - Schemas: skill manifest, IPC + error codes.
 - SDKs: TS/Rust stubs; signing helpers; approvals via file/prompt/webhook.
 - Streaming IPC active; contract runner executes transcripts via sandbox.
-- Demo skills: echo, uppercase, reverse, http_mock.
+- Demo skills: echo, uppercase, reverse, http_mock (plus a failure transcript example).
 
 ## Quickstart (local demo)
 ```bash
@@ -50,6 +50,9 @@ opensperm run --plan examples/plan.json --policy examples/policy.json --run exam
 
 # Validate demo transcript (executes via sandbox+registry)
 opensperm test --transcript examples/transcript.json
+
+# (Optional) failure case (expected to fail)
+opensperm test --transcript examples/fail_transcript.json || echo "expected fail"
 ```
 
 ## License

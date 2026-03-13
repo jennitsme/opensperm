@@ -1,0 +1,9 @@
+{
+  "name": "fail-demo-unknown-tool",
+  "steps": [
+    {
+      "request": {"tool": "nonexistent", "input": {}},
+      "response": {"output": {"error": "should fail"}}
+    }
+  ]
+}
