@@ -1,5 +1,14 @@
 use serde::{Deserialize, Serialize};
 
+pub const ERR_INVALID_INPUT: &str = "INVALID_INPUT";
+pub const ERR_POLICY_DENIED: &str = "POLICY_DENIED";
+pub const ERR_SANDBOX_FAILED: &str = "SANDBOX_FAILED";
+pub const ERR_TIMEOUT: &str = "TIMEOUT";
+pub const ERR_TOOL_ERROR: &str = "TOOL_ERROR";
+pub const ERR_INTERNAL: &str = "INTERNAL";
+pub const ERR_EGRESS_DENIED: &str = "EGRESS_DENIED";
+pub const ERR_UNKNOWN_TOOL: &str = "UNKNOWN_TOOL";
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToolCallContext {
     pub agent_id: String,

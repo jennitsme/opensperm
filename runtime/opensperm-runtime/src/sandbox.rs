@@ -1,9 +1,11 @@
 use crate::{
     egress::{EgressError, EgressPolicy},
-    ipc::{IpcMessage, ToolCall, ToolCallStatus},
+    ipc::{
+        IpcError, IpcMessage, ToolCall, ToolCallStatus, ERR_EGRESS_DENIED, ERR_SANDBOX_FAILED, ERR_TIMEOUT, ERR_UNKNOWN_TOOL,
+    },
     limits::{apply_limits, LimitError, ResourceLimits},
     observability::TraceCtx,
-    tool_registry::{ToolRegistry, ToolSpec},
+    tool_registry::ToolRegistry,
 };
 use std::process::Stdio;
 use thiserror::Error;
@@ -19,7 +21,7 @@ pub struct SandboxConfig {
 }
 
 pub struct SandboxManager {
-    config: SandboxConfig,
+    pub config: SandboxConfig,
     registry: ToolRegistry,
 }
 
@@ -56,7 +58,6 @@ impl SandboxManager {
             .resolve(&call)
             .ok_or_else(|| SandboxError::UnknownTool(call.tool.clone()))?;
 
-        // Egress check (simplified): ensure requested tool egress is allowed
         for allowed in &spec.allow_egress {
             if !self.config.egress_policy.permits(allowed) {
                 return Err(SandboxError::Egress(EgressError::Denied(allowed.clone())));
@@ -70,7 +71,6 @@ impl SandboxManager {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
 
-        // Apply resource limits (no-op placeholders per OS)
         let mut child = cmd.spawn().map_err(|e| SandboxError::Process(e.to_string()))?;
         apply_limits(&mut child, &self.config.limits).map_err(SandboxError::Limit)?;
 
@@ -123,4 +123,15 @@ pub enum SandboxError {
     Egress(#[from] EgressError),
     #[error(transparent)]
     Limit(#[from] LimitError),
+}
+
+impl SandboxError {
+    pub fn to_ipc_error(&self) -> IpcError {
+        match self {
+            SandboxError::UnknownTool(_) => IpcError { message: self.to_string(), code: Some(ERR_UNKNOWN_TOOL.into()) },
+            SandboxError::Timeout => IpcError { message: self.to_string(), code: Some(ERR_TIMEOUT.into()) },
+            SandboxError::Egress(_) => IpcError { message: self.to_string(), code: Some(ERR_EGRESS_DENIED.into()) },
+            _ => IpcError { message: self.to_string(), code: Some(ERR_SANDBOX_FAILED.into()) },
+        }
+    }
 }
