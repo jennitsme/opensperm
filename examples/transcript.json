@@ -19,7 +19,7 @@
     },
     {
       "request": {"tool": "http_fetch", "input": {"url": "https://example.com"}},
-      "response": {"output": {"raw": ""}}
+      "response": {"output": {"url": "https://example.com", "status": 200, "body": "Example Domain"}}
     }
   ]
 }
