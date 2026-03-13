@@ -13,6 +13,12 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::process::Command;
 use tokio::time::{timeout, Duration};
 
+fn url_allowed(input: &serde_json::Value, allow: &[String]) -> bool {
+    let url = input.get("url").and_then(|u| u.as_str()).unwrap_or("");
+    if url.is_empty() { return true; }
+    allow.iter().any(|p| url.starts_with(p))
+}
+
 #[derive(Clone)]
 pub struct SandboxConfig {
     pub timeout_ms: u64,
@@ -65,6 +71,11 @@ impl SandboxManager {
             .resolve(&call)
             .ok_or_else(|| SandboxError::UnknownTool(call.tool.clone()))?;
 
+        // Egress check: if input contains url, must match allow_egress
+        if !url_allowed(&call.input, &spec.allow_egress) {
+            tracing::warn!(tool=%call.tool, span_id=%call.context.span_id, "egress denied by allowlist");
+            return Err(SandboxError::Egress(EgressError::Denied(format!("url not allowed"))));
+        }
         for allowed in &spec.allow_egress {
             if !self.config.egress_policy.permits(allowed) {
                 return Err(SandboxError::Egress(EgressError::Denied(allowed.clone())));
@@ -81,7 +92,9 @@ impl SandboxManager {
         apply_limits(&mut cmd, &self.config.limits).map_err(SandboxError::Limit)?;
         #[cfg(target_os = "linux")]
         {
-            crate::seccomp::apply_seccomp().map_err(|e| SandboxError::Process(e))?;
+            if std::env::var("OPENSPERM_SECCOMP").is_ok() {
+                crate::seccomp::apply_seccomp().map_err(|e| SandboxError::Process(e))?;
+            }
         }
         let mut child = cmd.spawn().map_err(|e| SandboxError::Process(e.to_string()))?;
 
@@ -104,6 +117,11 @@ impl SandboxManager {
             let status = child.wait().await.map_err(|e| SandboxError::Process(e.to_string()))?;
             if !status.success() {
                 tracing::error!(span_id=%call.context.span_id, stderr=%String::from_utf8_lossy(&err), code=?status.code(), "sandbox process failed");
+                crate::logging::append_json("process_error", serde_json::json!({
+                    "span": call.context.span_id,
+                    "stderr": String::from_utf8_lossy(&err),
+                    "code": status.code()
+                }));
                 return Err(SandboxError::Process(format!("exit code {:?}, stderr {}", status.code(), String::from_utf8_lossy(&err))));
             }
             let output_json: serde_json::Value = serde_json::from_slice(&out).unwrap_or(serde_json::json!({"raw": String::from_utf8_lossy(&out)}));

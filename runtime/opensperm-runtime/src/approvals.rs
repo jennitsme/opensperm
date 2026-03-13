@@ -19,6 +19,7 @@ impl ApprovalState {
 
         if std::env::var("OPENSPERM_APPROVE_ALL").is_ok() {
             tracing::info!(scope=%scope, "approval: approve_all env");
+            crate::logging::append_json("approval", serde_json::json!({"scope": scope, "source": "approve_all", "status": "allow"}));
             let mut guard = self.approved_scopes.lock().await;
             guard.insert(scope.to_string());
             return true;
@@ -28,37 +29,50 @@ impl ApprovalState {
             if let Some(set) = self.load_file(&path) {
                 if set.contains(scope) {
                     tracing::info!(scope=%scope, file=%path, "approval: allowed by file");
+                    crate::logging::append_json("approval", serde_json::json!({"scope": scope, "source": "file", "file": path, "status": "allow"}));
                     let mut guard = self.approved_scopes.lock().await;
                     guard.insert(scope.to_string());
                     return true;
                 }
             }
             tracing::warn!(scope=%scope, file=%path, "approval: file present but scope not allowed");
+            crate::logging::append_json("approval", serde_json::json!({"scope": scope, "source": "file", "file": path, "status": "deny"}));
         }
 
+        // Enforce webhook for secure:* scopes
+        let secure_scope = scope.starts_with("secure:");
+
         if let Ok(url) = std::env::var("OPENSPERM_APPROVAL_WEBHOOK") {
-            if self.call_webhook(&url, scope).await {
+            let secret = std::env::var("OPENSPERM_APPROVAL_WEBHOOK_SECRET").unwrap_or_default();
+            if secure_scope && secret.is_empty() {
+                tracing::warn!(scope=%scope, "approval: secure scope requires webhook secret");
+            } else if self.call_webhook(&url, scope, &secret).await {
                 tracing::info!(scope=%scope, url=%url, "approval: webhook success");
+                crate::logging::append_json("approval", serde_json::json!({"scope": scope, "source": "webhook", "status": "allow"}));
                 let mut guard = self.approved_scopes.lock().await;
                 guard.insert(scope.to_string());
                 return true;
             } else {
                 tracing::warn!(scope=%scope, url=%url, "approval: webhook denied/failed");
+                crate::logging::append_json("approval", serde_json::json!({"scope": scope, "source": "webhook", "status": "deny"}));
             }
         }
 
         if std::env::var("OPENSPERM_APPROVAL_PROMPT").is_ok() {
             if Self::prompt(scope) {
                 tracing::info!(scope=%scope, "approval: prompt approved");
+                crate::logging::append_json("approval", serde_json::json!({"scope": scope, "source": "prompt", "status": "allow"}));
                 let mut guard = self.approved_scopes.lock().await;
                 guard.insert(scope.to_string());
                 return true;
             } else {
                 tracing::warn!(scope=%scope, "approval: prompt denied");
+                crate::logging::append_json("approval", serde_json::json!({"scope": scope, "source": "prompt", "status": "deny"}));
             }
         }
 
         tracing::warn!(scope=%scope, "approval: denied");
+        crate::logging::append_json("approval", serde_json::json!({"scope": scope, "status": "deny"}));
         false
     }
 
@@ -87,10 +101,9 @@ impl ApprovalState {
         false
     }
 
-    async fn call_webhook(&self, url: &str, scope: &str) -> bool {
+    async fn call_webhook(&self, url: &str, scope: &str, secret: &str) -> bool {
         let client = reqwest::Client::new();
         let payload = serde_json::json!({"scope": scope});
-        let secret = std::env::var("OPENSPERM_APPROVAL_WEBHOOK_SECRET").unwrap_or_default();
         let mut req = client.post(url).json(&payload);
         if !secret.is_empty() {
             req = req.header("X-Approval-Secret", secret);
