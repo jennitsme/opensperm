@@ -1,6 +1,6 @@
 # opensperm
 
-Opensperm adalah private agent runtime: dedicated pods, eksekusi terisolasi, model lokal, dan skill aman.
+Opensperm is a private agent runtime: dedicated pods, isolated execution, local models, and secure skills.
 
 ## Core Modules
 - **Agent Pods**: Dedicated compute per agent. No shared infra. Isolated processes.
@@ -35,11 +35,11 @@ git clone https://github.com/jennitsme/opensperm.git
 cd opensperm
 cargo build
 
-# Jalankan demo plan dengan registry/policy contoh
+# Run demo plan with sample registry/policy
 opensperm run --plan examples/plan.json --policy examples/policy.json --run examples/run.yml
 
-# Validasi transcript demo
-aopensperm test --transcript examples/transcript.json
+# Validate demo transcript
+opensperm test --transcript examples/transcript.json
 ```
 
 ## License
