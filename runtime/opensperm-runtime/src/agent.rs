@@ -27,7 +27,7 @@ impl AgentRuntime {
 
     pub async fn execute_plan(&self, plan: Plan, trace: TraceCtx) -> Result<(), AgentError> {
         for step in plan.steps {
-            self.policy.check(&step, &trace).map_err(AgentError::Policy)?;
+            self.policy.check(&step, &trace).await.map_err(AgentError::Policy)?;
             let tool_call = ToolCall::from_step(&step);
             self.sandbox.invoke(tool_call, trace.clone()).await.map_err(AgentError::Sandbox)?;
         }
