@@ -14,8 +14,12 @@
       "response": {"output": {"text": "mrepsnepo olleh"}}
     },
     {
-      "request": {"tool": "http_mock", "input": {"url": "https://example.com"}},
-      "response": {"output": {"url": "https://example.com", "status": 200, "body": "mocked"}}
+      "request": {"tool": "http_mock", "input": {"url": "https://example.com/mock"}},
+      "response": {"output": {"url": "https://example.com/mock", "status": 200, "body": "mocked"}}
+    },
+    {
+      "request": {"tool": "http_fetch", "input": {"url": "https://example.com"}},
+      "response": {"output": {"raw": ""}}
     }
   ]
 }

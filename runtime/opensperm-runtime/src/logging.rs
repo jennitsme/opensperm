@@ -17,3 +17,10 @@ pub fn append(line: &str) {
         let _ = writeln!(file, "{}", line);
     }
 }
+
+pub fn append_json(event: &str, value: serde_json::Value) {
+    if let Some(file) = LOG_FILE.lock().unwrap().as_mut() {
+        let obj = serde_json::json!({"event": event, "data": value});
+        let _ = writeln!(file, "{}", obj);
+    }
+}

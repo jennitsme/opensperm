@@ -27,8 +27,16 @@
     {
       "agent_id": "agent-1",
       "trace_id": "trace-demo",
-      "span_id": "span-http",
+      "span_id": "span-httpmock",
       "tool": "http_mock",
+      "input": {"url": "https://example.com/mock"},
+      "policy_scopes": []
+    },
+    {
+      "agent_id": "agent-1",
+      "trace_id": "trace-demo",
+      "span_id": "span-httpfetch",
+      "tool": "http_fetch",
       "input": {"url": "https://example.com"},
       "policy_scopes": []
     }

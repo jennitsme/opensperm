@@ -90,7 +90,12 @@ impl ApprovalState {
     async fn call_webhook(&self, url: &str, scope: &str) -> bool {
         let client = reqwest::Client::new();
         let payload = serde_json::json!({"scope": scope});
-        match client.post(url).json(&payload).send().await {
+        let secret = std::env::var("OPENSPERM_APPROVAL_WEBHOOK_SECRET").unwrap_or_default();
+        let mut req = client.post(url).json(&payload);
+        if !secret.is_empty() {
+            req = req.header("X-Approval-Secret", secret);
+        }
+        match req.send().await {
             Ok(resp) => resp.status().is_success(),
             Err(_) => false,
         }

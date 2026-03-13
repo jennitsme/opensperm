@@ -15,3 +15,7 @@ tools:
     command: ./examples/tools/http_mock.sh
     args: []
     allow_egress: []
+  - name: http_fetch
+    command: ./examples/tools/http_fetch.sh
+    args: []
+    allow_egress: ["https://example.com"]

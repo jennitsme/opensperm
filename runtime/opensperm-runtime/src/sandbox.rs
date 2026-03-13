@@ -52,7 +52,12 @@ impl SandboxManager {
 
     /// Invoke a tool, emitting stream tokens for stdout chunks and a final response.
     pub async fn invoke(&self, call: ToolCall, trace: TraceCtx) -> Result<Vec<IpcMessage>, SandboxError> {
-        crate::logging::append(&format!("invoke tool={} span={} trace={} scopes={:?}", call.tool, call.context.span_id, call.context.trace_id, call.context.policy_scopes));
+        crate::logging::append_json("invoke", serde_json::json!({
+            "tool": call.tool,
+            "span": call.context.span_id,
+            "trace": call.context.trace_id,
+            "scopes": call.context.policy_scopes
+        }));
         let _span = trace.enter_span("sandbox_invoke");
 
         let spec = self
@@ -107,7 +112,7 @@ impl SandboxManager {
                 for chunk in text_out.as_bytes().chunks(chunk_size) {
                     let delta = String::from_utf8_lossy(chunk).to_string();
                     tracing::info!(span_id=%call.context.span_id, stream_chunk=%delta);
-                    crate::logging::append(&format!("stream_chunk span={} delta={}", call.context.span_id, delta));
+                    crate::logging::append_json("stream_chunk", serde_json::json!({"span": call.context.span_id, "delta": delta}));
                     msgs.push(IpcMessage::StreamToken {
                         id: call.context.span_id.clone(),
                         delta,
@@ -123,7 +128,7 @@ impl SandboxManager {
                 error: None,
                 trace: None,
             });
-            crate::logging::append(&format!("tool_response span={} output={}", call.context.span_id, output_json));
+            crate::logging::append_json("tool_response", serde_json::json!({"span": call.context.span_id, "output": output_json}));
             Ok(msgs)
         };
 
