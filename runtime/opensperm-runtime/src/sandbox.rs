@@ -103,9 +103,11 @@ impl SandboxManager {
             if !text_out.is_empty() {
                 let chunk_size = 512;
                 for chunk in text_out.as_bytes().chunks(chunk_size) {
+                    let delta = String::from_utf8_lossy(chunk).to_string();
+                    tracing::info!(span_id=%call.context.span_id, "stream_chunk" = %delta);
                     msgs.push(IpcMessage::StreamToken {
                         id: call.context.span_id.clone(),
-                        delta: String::from_utf8_lossy(chunk).to_string(),
+                        delta,
                         done: false,
                     });
                 }

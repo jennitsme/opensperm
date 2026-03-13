@@ -33,6 +33,14 @@ impl ApprovalState {
             }
         }
 
+        if let Ok(url) = std::env::var("OPENSPERM_APPROVAL_WEBHOOK") {
+            if self.call_webhook(&url, scope).await {
+                let mut guard = self.approved_scopes.lock().await;
+                guard.insert(scope.to_string());
+                return true;
+            }
+        }
+
         if std::env::var("OPENSPERM_APPROVAL_PROMPT").is_ok() {
             if Self::prompt(scope) {
                 let mut guard = self.approved_scopes.lock().await;
@@ -67,5 +75,14 @@ impl ApprovalState {
             return resp == "y" || resp == "yes";
         }
         false
+    }
+
+    async fn call_webhook(&self, url: &str, scope: &str) -> bool {
+        let client = reqwest::Client::new();
+        let payload = serde_json::json!({"scope": scope});
+        match client.post(url).json(&payload).send().await {
+            Ok(resp) => resp.status().is_success(),
+            Err(_) => false,
+        }
     }
 }
