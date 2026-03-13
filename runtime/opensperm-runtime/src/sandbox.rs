@@ -39,6 +39,10 @@ impl SandboxManager {
         Self { config, registry: ToolRegistry::new() }
     }
 
+    pub fn config(&self) -> SandboxConfig {
+        self.config.clone()
+    }
+
     pub fn with_registry(mut self, registry: ToolRegistry) -> Self {
         self.registry = registry;
         self

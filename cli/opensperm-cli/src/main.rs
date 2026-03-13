@@ -7,6 +7,7 @@ mod init;
 mod policy;
 mod package;
 mod test_cmd;
+mod run_config;
 
 #[derive(Parser)]
 #[command(name = "opensperm", version, about = "Agentic runtime CLI")]
@@ -20,7 +21,7 @@ enum Commands {
     /// Initialize a skill scaffold (TS or Rust)
     Init { #[arg(long)] language: Option<String> },
     /// Run an agent locally with a policy config
-    Run { #[arg(long)] plan: Option<String>, #[arg(long)] policy: Option<String> },
+    Run { #[arg(long)] plan: Option<String>, #[arg(long)] policy: Option<String>, #[arg(long)] run: Option<String> },
     /// Run contract tests / golden transcripts
     Test { #[arg(long)] transcript: Option<String> },
     /// Package and sign a skill bundle
@@ -41,7 +42,7 @@ fn main() {
                 eprintln!("init failed: {e}");
             }
         }
-        Commands::Run { plan, policy: pol } => {
+        Commands::Run { plan, policy: pol, run } => {
             let plan_path = plan.unwrap_or_else(|| "plan.json".to_string());
             let data = fs::read_to_string(&plan_path).expect("read plan");
             let plan: Plan = serde_json::from_str(&data).expect("parse plan");
@@ -51,10 +52,17 @@ fn main() {
                 None => opensperm_runtime::policy::PolicyEngine::new(),
             };
 
-            let runtime = AgentRuntime::new(
-                opensperm_runtime::sandbox::SandboxManager::new(),
-                policy_engine,
-            );
+            let (sandbox_cfg, registry_opt) = match run {
+                Some(r) => run_config::load(&r).unwrap_or_else(|e| panic!("run config load failed: {e}")),
+                None => (opensperm_runtime::sandbox::SandboxManager::new().config, None),
+            };
+
+            let mut sandbox = opensperm_runtime::sandbox::SandboxManager::with_config(sandbox_cfg);
+            if let Some(reg) = registry_opt {
+                sandbox = sandbox.with_registry(reg);
+            }
+
+            let runtime = AgentRuntime::new(sandbox, policy_engine);
             let _config = AgentConfig {
                 id: "agent-1".into(),
                 policy_scopes: vec![],
