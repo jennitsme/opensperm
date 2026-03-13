@@ -1,4 +1,4 @@
-use std::{collections::HashSet, fs};
+use std::{collections::HashSet, fs, io::{stdin, stdout, Write}};
 use tokio::sync::{Mutex, OnceCell};
 use std::sync::Arc;
 
@@ -33,6 +33,14 @@ impl ApprovalState {
             }
         }
 
+        if std::env::var("OPENSPERM_APPROVAL_PROMPT").is_ok() {
+            if Self::prompt(scope) {
+                let mut guard = self.approved_scopes.lock().await;
+                guard.insert(scope.to_string());
+                return true;
+            }
+        }
+
         false
     }
 
@@ -48,5 +56,16 @@ impl ApprovalState {
             .collect();
         let _ = self.file_cache.set(set.clone());
         Some(set)
+    }
+
+    fn prompt(scope: &str) -> bool {
+        print!("Approve scope '{scope}'? [y/N]: ");
+        let _ = stdout().flush();
+        let mut input = String::new();
+        if stdin().read_line(&mut input).is_ok() {
+            let resp = input.trim().to_lowercase();
+            return resp == "y" || resp == "yes";
+        }
+        false
     }
 }

@@ -3,3 +3,7 @@ tools:
     command: /bin/cat
     args: []
     allow_egress: []
+  - name: uppercase
+    command: ./examples/tools/uppercase.sh
+    args: []
+    allow_egress: []

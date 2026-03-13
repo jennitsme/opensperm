@@ -7,6 +7,14 @@
       "tool": "echo",
       "input": {"text": "hello opensperm"},
       "policy_scopes": []
+    },
+    {
+      "agent_id": "agent-1",
+      "trace_id": "trace-demo",
+      "span_id": "span-upper",
+      "tool": "uppercase",
+      "input": {"text": "hello opensperm"},
+      "policy_scopes": []
     }
   ]
 }

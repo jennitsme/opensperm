@@ -1,9 +1,13 @@
 {
-  "name": "echo-demo",
+  "name": "echo-uppercase-demo",
   "steps": [
     {
       "request": {"tool": "echo", "input": {"text": "hello opensperm"}},
       "response": {"output": {"text": "hello opensperm"}}
+    },
+    {
+      "request": {"tool": "uppercase", "input": {"text": "hello opensperm"}},
+      "response": {"output": {"text": "HELLO OPENSPERM"}}
     }
   ]
 }
