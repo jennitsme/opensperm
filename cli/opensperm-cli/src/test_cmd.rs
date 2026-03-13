@@ -7,6 +7,7 @@ pub fn run_transcript(path: &str) -> Result<()> {
     if transcript.get("steps").is_none() {
         anyhow::bail!("invalid transcript: missing steps");
     }
-    // TODO: invoke runtime shim (TS/Rust) when available.
+    // TODO: call TS/Rust shim for actual execution.
+    println!("validated transcript structure: {}", path);
     Ok(())
 }
