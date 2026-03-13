@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Opensperm – Private Agent Runtime</title>
+  <style>
+    :root {
+      --bg: #0a0c10;
+      --card: #11141b;
+      --accent: #7cfbde;
+      --text: #e8ecf3;
+      --muted: #8fa3c2;
+      --border: #1f2430;
+      --glow: 0 0 40px rgba(124, 251, 222, 0.25);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(124,251,222,0.08), transparent 35%),
+                  radial-gradient(circle at 80% 0%, rgba(146,182,255,0.12), transparent 25%),
+                  var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 32px;
+      position: sticky;
+      top: 0;
+      backdrop-filter: blur(10px);
+      background: rgba(10,12,16,0.7);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo { font-weight: 700; letter-spacing: 0.02em; }
+    .badge { padding: 6px 12px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted); }
+    .hero {
+      max-width: 1100px;
+      margin: 80px auto 40px;
+      padding: 0 24px;
+    }
+    .hero h1 { font-size: clamp(32px, 6vw, 54px); margin: 0 0 16px; }
+    .hero p { color: var(--muted); line-height: 1.6; max-width: 760px; }
+    .pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted); margin-bottom: 16px; }
+    .cta { margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn { padding: 12px 18px; border-radius: 10px; border: 1px solid var(--border); color: var(--text); background: linear-gradient(135deg, rgba(124,251,222,0.12), rgba(124,251,222,0.02)); box-shadow: var(--glow); text-decoration: none; font-weight: 600; }
+    .btn.secondary { background: transparent; color: var(--muted); box-shadow: none; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 32px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px; box-shadow: 0 12px 40px rgba(0,0,0,0.25); }
+    .card h3 { margin: 0 0 8px; }
+    .card p { margin: 0; color: var(--muted); line-height: 1.5; }
+    .section { max-width: 1100px; margin: 40px auto; padding: 0 24px; }
+    .section h2 { margin-bottom: 12px; }
+    .list { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px,1fr)); gap: 14px; }
+    .list-item { display: flex; gap: 10px; align-items: flex-start; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: var(--glow); margin-top: 6px; }
+    footer { border-top: 1px solid var(--border); padding: 24px 32px; color: var(--muted); text-align: center; margin-top: 40px; }
+    @media(max-width: 640px){ .hero { margin-top: 48px; } }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="logo">opensperm</div>
+    <div class="badge">Private Agent Runtime</div>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <div class="pill">Spawn · Inject · Deploy · Ghost</div>
+      <h1>Private agent pods dengan runtime terisolasi dan kontrol penuh.</h1>
+      <p>Opensperm menyediakan pods privat untuk tiap agen, menjalankan model lokal, tools, dan workflow dalam sandbox aman dengan egress allowlist, policy/approval, dan observability bawaan.</p>
+      <div class="cta">
+        <a class="btn" href="https://github.com/jennitsme/opensperm">Lihat Repo</a>
+        <a class="btn secondary" href="#modules">Lihat Modul</a>
+      </div>
+    </section>
+
+    <section id="modules" class="section">
+      <h2>Ghost Modules</h2>
+      <div class="grid">
+        <div class="card"><h3>Agent Pods</h3><p>Compute dedikasi per agen. Tidak berbagi infra. Proses terisolasi.</p></div>
+        <div class="card"><h3>Agent Runtime</h3><p>Eksekusi aman untuk model, tools, dan workflow. Sandbox dengan egress allowlist, CPU/mem limits, dan policy checks.</p></div>
+        <div class="card"><h3>Agent Models</h3><p>Jalankan model lokal secara privat. Kontrol penuh, tanpa ketergantungan API eksternal.</p></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Private Actions</h2>
+      <div class="grid">
+        <div class="card"><h3>Private Skills</h3><p>Capabilities kustom berjalan sepenuhnya di sandbox agen.</p></div>
+        <div class="card"><h3>Private Access</h3><p>Tunnel aman untuk terhubung ke agen.</p></div>
+        <div class="card"><h3>Private Payment</h3><p>Pembayaran privat tanpa ekspos publik.</p></div>
+        <div class="card"><h3>Private Memory</h3><p>Penyimpanan pengetahuan dan state yang aman.</p></div>
+        <div class="card"><h3>Private Backup</h3><p>Backup dan restore yang terlindungi.</p></div>
+        <div class="card"><h3>App Manager</h3><p>Kelola apps/tools agen dari satu tempat.</p></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Kenapa Opensperm?</h2>
+      <div class="list">
+        <div class="list-item"><div class="dot"></div><div><strong>Sandbox ketat</strong><br/><span class="muted">Egress allowlist, rlimits CPU/mem, skill ter-signing.</span></div></div>
+        <div class="list-item"><div class="dot"></div><div><strong>Policy & Approval</strong><br/><span class="muted">Scopes, RBAC/ABAC, approval hook (file/env; extensible prompt/webhook).</span></div></div>
+        <div class="list-item"><div class="dot"></div><div><strong>Observability</strong><br/><span class="muted">IPC dengan error codes; log/trace per tool call; replay transcript.</span></div></div>
+        <div class="list-item"><div class="dot"></div><div><strong>Typed SDK</strong><br/><span class="muted">TS/Rust schemas untuk manifest, IPC; contract tests (on progress).</span></div></div>
+        <div class="list-item"><div class="dot"></div><div><strong>Local-first</strong><br/><span class="muted">Golden transcripts, offline dev, deterministic fixtures.</span></div></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    opensperm · Private Agent Runtime · Apache-2.0
+  </footer>
+</body>
+</html>
