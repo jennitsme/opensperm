@@ -1,40 +1,43 @@
 # opensperm
 
-Agentic runtime inspired by OpenClaw, focused on secure sandboxing, typed skill contracts, and deep observability. Built for local-first development with a clear path to production.
+Spawn. Inject. Deploy. Ghost. — Opensperm is a private agent runtime: dedicated pods, isolated execution, local models, and secure skills.
+
+## Core Modules
+- **Agent Pods**: Dedicated compute per agent. No shared infra. Isolated processes.
+- **Agent Runtime**: Secure execution for models, tools, and workflows. Sandbox with egress allowlists, CPU/mem limits, and policy checks.
+- **Agent Models**: Run local models privately. Full control; no mandatory external APIs.
+
+## Private-by-design Actions
+- **Private Skills**: Custom capabilities run entirely inside your agent’s sandbox.
+- **Private Access**: Connect via secure tunnel to your agent environment.
+- **Private Payment**: Process payments privately without public exposure.
+- **Private Memory**: Secure storage for knowledge and state.
+- **Private Backup**: Protected backups and restore flows.
+- **App Manager**: Manage agent apps/tools from one place.
 
 ## Differentiators
-- **Secure-by-default agents**: per-agent process isolation, CPU/mem quotas, egress allowlists, signed skill bundles.
-- **Typed Skill SDKs**: Rust + TypeScript SDKs with strict input/output schemas, contract tests, and generated typings.
-- **Policy layer**: declarative RBAC/ABAC for tools and data scopes; human-in-the-loop approval hooks.
-- **Observability baked in**: structured logs + OpenTelemetry traces for every tool call; replay and deterministic test harnesses.
-- **Offline/dev mode**: deterministic fixtures, golden transcripts, and no-internet sandbox for safe iteration.
-- **Multi-agent orchestration**: planner/executor with capability graph; cost/latency budgets per task.
+- Secure sandboxing: per-tool egress allowlist, rlimits, signed skills.
+- Policy & approvals: scopes, RBAC/ABAC, approval file hook (extensible to prompts/webhooks).
+- Observability: structured IPC with error codes; traces/logs per tool call.
+- Typed SDKs (TS/Rust) + schemas for manifests and IPC.
+- Local/offline mode with golden transcripts and contract tests (in progress).
 
-## High-level architecture
-See [ARCHITECTURE.md](ARCHITECTURE.md) for details.
-- **Runtime (Rust)**: planner/executor loop, sandbox manager, policy engine, tool IPC bridge, memory providers.
-- **SDKs (TS + Rust)**: define skills/tools with typed contracts, middleware (auth/logging/policy), contract tests, packaging/signing.
-- **CLI**: init skills, run agents locally, test/replay transcripts, package/sign/publish skill bundles.
-- **Observability**: OpenTelemetry exporters, structured logs, replay UI (later), golden transcript runner.
+## Current Status
+- Rust runtime skeleton (sandbox, policy, registry, egress, limits).
+- CLI: init/run/test/package/policy-check; run-config + registry loader.
+- Schemas: skill manifest, IPC + error codes.
+- SDKs: TS/Rust stubs; signing helpers; approvals via file.
+- TODO (next): streaming IPC, contract runner via shim, approval channel beyond file, demo skills/policies.
 
-## Roadmap (MVP)
-1) **Spec & contracts**
-   - Skill manifest schema (YAML/JSON) with typed IO, capabilities, policy scopes, and signing.
-   - IPC protocol between runtime and skills (tool calls, streaming tokens, traces).
-2) **Runtime core** (Rust)
-   - Agent loop (planner/executor), tool abstraction, capability graph, policy enforcement, sandbox manager.
-   - Memory providers (local kv + pluggable vector store interface) with retention/redaction policies.
-3) **SDKs**
-   - TS + Rust SDKs for skills; contract test harness; typed clients; middleware hooks.
-4) **CLI**
-   - `opensperm init skill`, `opensperm run`, `opensperm test`, `opensperm package --sign`, `opensperm policy check`.
-5) **Observability**
-   - Structured logs, traces; local replay of transcripts; deterministic fixtures for tests.
+## Quickstart (local)
+```bash
+# Run plan with policy and run configs
+auth your gh; git clone https://github.com/jennitsme/opensperm.git
+cd opensperm
+cargo build
+# example
+# opensperm run --plan plan.json --policy policy.json --run run.yml
+```
 
-## Contribution / dev
-- Target platform: local macOS/Linux.
-- Primary language: Rust for runtime/CLI; TS bindings for SDK.
-- Public repo; open to contributors. CI planned: lint + fmt + tests + contract tests.
-
-## Status
-Scaffolding in progress. See `/docs` and `/policies` for specs as they land.
+## License
+Apache-2.0
