@@ -1,7 +1,7 @@
 use crate::{
     egress::{EgressError, EgressPolicy},
     ipc::{IpcMessage, ToolCall, ToolCallStatus},
-    limits::ResourceLimits,
+    limits::{apply_limits, LimitError, ResourceLimits},
     observability::TraceCtx,
     tool_registry::{ToolRegistry, ToolSpec},
 };
@@ -70,12 +70,9 @@ impl SandboxManager {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
 
-        // TODO: apply resource limits per OS (rlimits/cgroups)
-        if let Some(_mem) = self.config.limits.memory_bytes {
-            // placeholder hook
-        }
-
+        // Apply resource limits (no-op placeholders per OS)
         let mut child = cmd.spawn().map_err(|e| SandboxError::Process(e.to_string()))?;
+        apply_limits(&mut child, &self.config.limits).map_err(SandboxError::Limit)?;
 
         if let Some(mut stdin) = child.stdin.take() {
             stdin.write_all(&payload).await.map_err(|e| SandboxError::Process(e.to_string()))?;
@@ -124,4 +121,6 @@ pub enum SandboxError {
     Timeout,
     #[error(transparent)]
     Egress(#[from] EgressError),
+    #[error(transparent)]
+    Limit(#[from] LimitError),
 }
