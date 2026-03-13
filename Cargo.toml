@@ -1,0 +1,6 @@
+[workspace]
+members = [
+  "runtime/opensperm-runtime",
+  "cli/opensperm-cli"
+]
+resolver = "2"

@@ -1,0 +1,76 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://opensperm.dev/schemas/ipc.schema.json",
+  "title": "IPCProtocol",
+  "oneOf": [
+    { "$ref": "#/definitions/ToolCallRequest" },
+    { "$ref": "#/definitions/ToolCallResponse" },
+    { "$ref": "#/definitions/StreamToken" },
+    { "$ref": "#/definitions/TraceEvent" }
+  ],
+  "definitions": {
+    "ToolCallRequest": {
+      "type": "object",
+      "required": ["type", "id", "tool", "input", "context"],
+      "properties": {
+        "type": { "const": "tool_call_request" },
+        "id": { "type": "string" },
+        "tool": { "type": "string" },
+        "input": { "type": "object" },
+        "context": {
+          "type": "object",
+          "properties": {
+            "agentId": { "type": "string" },
+            "traceId": { "type": "string" },
+            "spanId": { "type": "string" },
+            "policyScopes": { "type": "array", "items": { "type": "string" } }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "ToolCallResponse": {
+      "type": "object",
+      "required": ["type", "id", "status"],
+      "properties": {
+        "type": { "const": "tool_call_response" },
+        "id": { "type": "string" },
+        "status": { "type": "string", "enum": ["ok", "error"] },
+        "output": { "type": "object" },
+        "error": {
+          "type": "object",
+          "properties": {
+            "message": { "type": "string" },
+            "code": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "StreamToken": {
+      "type": "object",
+      "required": ["type", "id", "delta"],
+      "properties": {
+        "type": { "const": "stream_token" },
+        "id": { "type": "string" },
+        "delta": { "type": "string" },
+        "done": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "TraceEvent": {
+      "type": "object",
+      "required": ["type", "timestamp", "level", "message", "metadata"],
+      "properties": {
+        "type": { "const": "trace" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "level": { "type": "string", "enum": ["debug", "info", "warn", "error"] },
+        "message": { "type": "string" },
+        "metadata": { "type": "object" }
+      },
+      "additionalProperties": false
+    }
+  }
+}
