@@ -36,10 +36,19 @@ git clone https://github.com/jennitsme/opensperm.git
 cd opensperm
 cargo build
 
+# Approvals (choose one):
+# export OPENSPERM_APPROVE_ALL=1
+# export OPENSPERM_APPROVAL_FILE=approvals.txt   # comma-separated scopes
+# export OPENSPERM_APPROVAL_PROMPT=1             # interactive prompt
+# export OPENSPERM_APPROVAL_WEBHOOK=https://example.com/approve
+
+# Optional logging
+# export OPENSPERM_LOG_FILE=run.log
+
 # Run demo plan with sample registry/policy
 opensperm run --plan examples/plan.json --policy examples/policy.json --run examples/run.yml
 
-# Validate demo transcript
+# Validate demo transcript (executes via sandbox+registry)
 opensperm test --transcript examples/transcript.json
 ```
 
