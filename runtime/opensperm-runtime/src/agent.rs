@@ -1,5 +1,5 @@
 use crate::{
-    ipc::ToolCall,
+    ipc::{IpcMessage, ToolCall},
     observability::TraceCtx,
     planner::Plan,
     policy::PolicyEngine,
@@ -29,7 +29,11 @@ impl AgentRuntime {
         for step in plan.steps {
             self.policy.check(&step, &trace).await.map_err(AgentError::Policy)?;
             let tool_call = ToolCall::from_step(&step);
-            self.sandbox.invoke(tool_call, trace.clone()).await.map_err(AgentError::Sandbox)?;
+            let msgs = self.sandbox.invoke(tool_call, trace.clone()).await.map_err(AgentError::Sandbox)?;
+            // Basic handling: ensure we saw a ToolCallResponse; ignore stream tokens
+            if !msgs.iter().any(|m| matches!(m, IpcMessage::ToolCallResponse { .. })) {
+                return Err(AgentError::Sandbox("missing tool response".into()));
+            }
         }
         Ok(())
     }

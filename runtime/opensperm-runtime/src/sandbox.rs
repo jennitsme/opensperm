@@ -50,7 +50,8 @@ impl SandboxManager {
         self
     }
 
-    pub async fn invoke(&self, call: ToolCall, trace: TraceCtx) -> Result<IpcMessage, SandboxError> {
+    /// Invoke a tool, emitting stream tokens for stdout chunks and a final response.
+    pub async fn invoke(&self, call: ToolCall, trace: TraceCtx) -> Result<Vec<IpcMessage>, SandboxError> {
         let _span = trace.enter_span("sandbox_invoke");
 
         let spec = self
@@ -95,13 +96,29 @@ impl SandboxManager {
                 return Err(SandboxError::Process(format!("exit code {:?}, stderr {}", status.code(), String::from_utf8_lossy(&err))));
             }
             let output_json: serde_json::Value = serde_json::from_slice(&out).unwrap_or(serde_json::json!({"raw": String::from_utf8_lossy(&out)}));
-            Ok(IpcMessage::ToolCallResponse {
+
+            // Streaming: emit stream_token chunks before final response
+            let mut msgs: Vec<IpcMessage> = Vec::new();
+            let text_out = String::from_utf8_lossy(&out).to_string();
+            if !text_out.is_empty() {
+                let chunk_size = 512;
+                for chunk in text_out.as_bytes().chunks(chunk_size) {
+                    msgs.push(IpcMessage::StreamToken {
+                        id: call.context.span_id.clone(),
+                        delta: String::from_utf8_lossy(chunk).to_string(),
+                        done: false,
+                    });
+                }
+            }
+
+            msgs.push(IpcMessage::ToolCallResponse {
                 id: call.context.span_id.clone(),
                 status: ToolCallStatus::Ok,
                 output: Some(output_json),
                 error: None,
                 trace: None,
-            })
+            });
+            Ok(msgs)
         };
 
         let res = timeout(Duration::from_millis(self.config.timeout_ms), fut)

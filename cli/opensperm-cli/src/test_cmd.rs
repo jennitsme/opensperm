@@ -1,5 +1,5 @@
 use anyhow::Result;
-use opensperm_runtime::{registry_config::load_registry, sandbox::SandboxManager, egress::EgressPolicy, limits::ResourceLimits, sandbox::SandboxConfig, ipc::IpcMessage};
+use opensperm_runtime::{egress::EgressPolicy, limits::ResourceLimits, registry_config::load_registry, sandbox::SandboxConfig, sandbox::SandboxManager};
 use std::fs;
 
 #[derive(serde::Deserialize)]
@@ -21,7 +21,6 @@ pub fn run_transcript(path: &str) -> Result<()> {
         anyhow::bail!("no steps");
     }
 
-    // Optional registry path (env OPENSPERM_REGISTRY) for replay via sandbox
     let reg_path = std::env::var("OPENSPERM_REGISTRY").unwrap_or_else(|_| "examples/registry.yml".into());
     let registry = load_registry(&reg_path)?;
     let sandbox = SandboxManager::with_config(SandboxConfig {
@@ -46,14 +45,21 @@ pub fn run_transcript(path: &str) -> Result<()> {
                     policy_scopes: vec![],
                 },
             };
-            let resp = sandbox.invoke(call, opensperm_runtime::observability::TraceCtx { trace_id: "trace".into(), span_id: "span".into() }).await?;
-            if let IpcMessage::ToolCallResponse { output, .. } = resp {
-                let expected = step.response.get("output").cloned().unwrap_or_else(|| serde_json::json!({}));
-                if output.unwrap_or_default() != expected {
-                    anyhow::bail!("output mismatch for tool {tool}");
+            let msgs = sandbox
+                .invoke(call, opensperm_runtime::observability::TraceCtx { trace_id: "trace".into(), span_id: "span".into() })
+                .await?;
+            let mut found_resp = false;
+            let expected = step.response.get("output").cloned().unwrap_or_else(|| serde_json::json!({}));
+            for m in msgs {
+                if let opensperm_runtime::ipc::IpcMessage::ToolCallResponse { output, .. } = m {
+                    found_resp = true;
+                    if output.unwrap_or_default() != expected {
+                        anyhow::bail!("output mismatch for tool {tool}");
+                    }
                 }
-            } else {
-                anyhow::bail!("unexpected IPC message");
+            }
+            if !found_resp {
+                anyhow::bail!("no tool response for {tool}");
             }
         }
         Ok::<(), anyhow::Error>(())
