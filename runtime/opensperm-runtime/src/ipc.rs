@@ -24,11 +24,15 @@ pub enum IpcMessage {
         status: ToolCallStatus,
         output: Option<serde_json::Value>,
         error: Option<IpcError>,
+        /// Optional serialized trace/tracking info
+        trace: Option<serde_json::Value>,
     },
     #[serde(rename = "stream_token")]
     StreamToken { id: String, delta: String, done: bool },
     #[serde(rename = "trace")]
     TraceEvent { level: TraceLevel, message: String, metadata: serde_json::Value },
+    #[serde(rename = "heartbeat")]
+    Heartbeat { id: String },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
